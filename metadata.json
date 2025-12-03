@@ -1,0 +1,5 @@
+{
+  "name": "CatalogPro",
+  "description": "A professional product catalog with role-based access control, installment calculations, and AI-powered product descriptions.",
+  "requestFramePermissions": []
+}
