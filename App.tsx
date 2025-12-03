@@ -4,9 +4,10 @@ import Layout from './components/Layout';
 import ProductList from './pages/ProductList';
 import ProductForm from './pages/ProductForm';
 import SettingsPage from './pages/Settings';
+import UserManagement from './pages/UserManagement';
+import FinancialReport from './pages/FinancialReport';
 import Login from './pages/Login';
 import { Role, User } from './types';
-import { dataService } from './services/dataService';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,7 +54,13 @@ const App: React.FC = () => {
                       <Route path="/products/new" element={<ProductForm />} />
                       <Route path="/products/edit/:id" element={<ProductForm />} />
                       <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/users" element={<UserManagement />} />
                     </>
+                  )}
+
+                  {/* Admin and Owner Routes */}
+                  {(user.role === Role.ADMIN || user.role === Role.OWNER) && (
+                    <Route path="/reports" element={<FinancialReport user={user} />} />
                   )}
                   
                   <Route path="*" element={<Navigate to="/" replace />} />

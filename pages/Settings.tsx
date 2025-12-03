@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Trash2, Plus, Save, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { Brand, Category, GlobalSettings } from '../types';
@@ -20,6 +21,7 @@ const SettingsPage: React.FC = () => {
   const [newCatImage, setNewCatImage] = useState<string>('');
   
   const [newBrand, setNewBrand] = useState('');
+  const [newBrandCategory, setNewBrandCategory] = useState('');
 
   useEffect(() => {
     setSettings(dataService.getSettings());
@@ -29,14 +31,14 @@ const SettingsPage: React.FC = () => {
 
   const handleSaveSettings = () => {
     dataService.saveSettings(settings);
-    alert('Settings saved successfully!');
+    alert('Pengaturan berhasil disimpan!');
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) { // 1MB Limit
-        alert("Image is too large. Please use an image under 1MB.");
+        alert("Gambar terlalu besar. Harap gunakan gambar di bawah 1MB.");
         return;
       }
       const reader = new FileReader();
@@ -61,22 +63,27 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleDeleteCategory = (id: string) => {
-    if (confirm('Delete category?')) {
+    if (confirm('Hapus kategori ini?')) {
       dataService.deleteCategory(id);
       setCategories(dataService.getCategories());
     }
   };
 
   const handleAddBrand = () => {
-    if (!newBrand) return;
-    const brand: Brand = { id: Date.now().toString(), name: newBrand };
+    if (!newBrand || !newBrandCategory) return;
+    const brand: Brand = { 
+      id: Date.now().toString(), 
+      name: newBrand,
+      categoryId: newBrandCategory
+    };
     dataService.saveBrand(brand);
     setBrands(dataService.getBrands());
     setNewBrand('');
+    setNewBrandCategory('');
   };
 
   const handleDeleteBrand = (id: string) => {
-    if (confirm('Delete brand?')) {
+    if (confirm('Hapus merek ini?')) {
       dataService.deleteBrand(id);
       setBrands(dataService.getBrands());
     }
@@ -98,16 +105,16 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex gap-2 border-b border-gray-200 pb-2">
-        <TabButton id="general" label="Calculations" />
-        <TabButton id="categories" label="Categories" />
-        <TabButton id="brands" label="Brands" />
+        <TabButton id="general" label="Perhitungan" />
+        <TabButton id="categories" label="Kategori" />
+        <TabButton id="brands" label="Merek" />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         {activeTab === 'general' && (
           <div className="max-w-xl space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900">Calculation Variables</h3>
-            <p className="text-sm text-gray-500">Adjust the variables used to calculate selling prices and installments.</p>
+            <h3 className="text-lg font-semibold text-gray-900">Variabel Perhitungan</h3>
+            <p className="text-sm text-gray-500">Sesuaikan variabel yang digunakan untuk menghitung harga jual dan angsuran.</p>
             
             <div className="grid grid-cols-1 gap-4">
               <div className="flex flex-col gap-1">
@@ -118,12 +125,12 @@ const SettingsPage: React.FC = () => {
                   onChange={(e) => setSettings({...settings, margin_up_percent: Number(e.target.value)})}
                   className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-primary-500 outline-none"
                 />
-                <p className="text-xs text-gray-400">Used to calculate Price UP from HPP.</p>
+                <p className="text-xs text-gray-400">Digunakan untuk menghitung Harga Jual (UP) dari HPP.</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-gray-700">3-Month Interest (%)</label>
+                  <label className="text-sm font-medium text-gray-700">Bunga 3 Bulan (%)</label>
                   <input 
                     type="number" 
                     value={settings.interest_3_month}
@@ -132,7 +139,7 @@ const SettingsPage: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-gray-700">6-Month Interest (%)</label>
+                  <label className="text-sm font-medium text-gray-700">Bunga 6 Bulan (%)</label>
                   <input 
                     type="number" 
                     value={settings.interest_6_month}
@@ -141,7 +148,7 @@ const SettingsPage: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-gray-700">9-Month Interest (%)</label>
+                  <label className="text-sm font-medium text-gray-700">Bunga 9 Bulan (%)</label>
                   <input 
                     type="number" 
                     value={settings.interest_9_month}
@@ -150,7 +157,7 @@ const SettingsPage: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-sm font-medium text-gray-700">12-Month Interest (%)</label>
+                  <label className="text-sm font-medium text-gray-700">Bunga 12 Bulan (%)</label>
                   <input 
                     type="number" 
                     value={settings.interest_12_month}
@@ -164,7 +171,7 @@ const SettingsPage: React.FC = () => {
                 onClick={handleSaveSettings}
                 className="mt-4 flex items-center justify-center gap-2 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
               >
-                <Save size={16} /> Save Changes
+                <Save size={16} /> Simpan Perubahan
               </button>
             </div>
           </div>
@@ -172,7 +179,7 @@ const SettingsPage: React.FC = () => {
 
         {activeTab === 'categories' && (
           <div className="max-w-xl space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900">Manage Categories</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Kelola Kategori</h3>
             
             <div className="flex gap-3 items-start p-4 bg-gray-50 rounded-lg border border-gray-100">
               <div className="relative group shrink-0">
@@ -191,7 +198,7 @@ const SettingsPage: React.FC = () => {
                   <button 
                     onClick={() => setNewCatImage('')} 
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-sm hover:bg-red-600"
-                    title="Remove image"
+                    title="Hapus gambar"
                   >
                     <X size={10} />
                   </button>
@@ -202,7 +209,7 @@ const SettingsPage: React.FC = () => {
                 type="text" 
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
-                placeholder="New Category Name"
+                placeholder="Nama Kategori Baru"
                 className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500 text-sm h-10"
               />
               <button 
@@ -236,7 +243,7 @@ const SettingsPage: React.FC = () => {
                 </li>
               ))}
               {categories.length === 0 && (
-                <p className="text-center text-gray-500 text-sm py-4">No categories found.</p>
+                <p className="text-center text-gray-500 text-sm py-4">Belum ada kategori.</p>
               )}
             </ul>
           </div>
@@ -244,39 +251,55 @@ const SettingsPage: React.FC = () => {
 
         {activeTab === 'brands' && (
           <div className="max-w-xl space-y-6">
-            <h3 className="text-lg font-semibold text-gray-900">Manage Brands</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Kelola Merek</h3>
             
-            <div className="flex gap-2 p-4 bg-gray-50 rounded-lg border border-gray-100">
-              <input 
-                type="text" 
-                value={newBrand}
-                onChange={(e) => setNewBrand(e.target.value)}
-                placeholder="New Brand Name"
-                className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-              />
-              <button 
-                onClick={handleAddBrand}
-                disabled={!newBrand}
-                className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus size={20} />
-              </button>
+            <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="flex gap-2">
+                <select
+                  value={newBrandCategory}
+                  onChange={(e) => setNewBrandCategory(e.target.value)}
+                  className="w-1/3 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                >
+                  <option value="">Pilih Kategori</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                <input 
+                  type="text" 
+                  value={newBrand}
+                  onChange={(e) => setNewBrand(e.target.value)}
+                  placeholder="Nama Merek Baru"
+                  className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                />
+                <button 
+                  onClick={handleAddBrand}
+                  disabled={!newBrand || !newBrandCategory}
+                  className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed w-10 shrink-0 flex items-center justify-center"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
             </div>
 
             <ul className="space-y-2 max-h-96 overflow-y-auto">
-              {brands.map(b => (
-                <li key={b.id} className="flex justify-between items-center bg-white border border-gray-100 px-4 py-3 rounded-lg hover:shadow-sm transition-shadow">
-                  <span className="font-medium text-gray-800">{b.name}</span>
-                  <button 
-                    onClick={() => handleDeleteBrand(b.id)}
-                    className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </li>
-              ))}
+              {brands.map(b => {
+                const cat = categories.find(c => c.id === b.categoryId);
+                return (
+                  <li key={b.id} className="flex justify-between items-center bg-white border border-gray-100 px-4 py-3 rounded-lg hover:shadow-sm transition-shadow">
+                    <div className="flex items-center gap-2">
+                       <span className="font-medium text-gray-800">{b.name}</span>
+                       {cat && <span className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">{cat.name}</span>}
+                    </div>
+                    <button 
+                      onClick={() => handleDeleteBrand(b.id)}
+                      className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </li>
+                );
+              })}
               {brands.length === 0 && (
-                <p className="text-center text-gray-500 text-sm py-4">No brands found.</p>
+                <p className="text-center text-gray-500 text-sm py-4">Belum ada merek.</p>
               )}
             </ul>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, User as UserIcon, Lock } from 'lucide-react';
@@ -27,7 +28,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       onLogin(user);
       navigate('/');
     } else {
-      setError('Invalid username. Try "admin" or "user".');
+      setError('Username tidak valid. Coba "admin", "user", atau "owner".');
     }
   };
 
@@ -39,7 +40,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <Package size={32} />
           </div>
           <h1 className="text-2xl font-bold text-white">CatalogPro</h1>
-          <p className="text-primary-100 mt-2 text-sm">Sign in to manage your inventory</p>
+          <p className="text-primary-100 mt-2 text-sm">Masuk untuk mengelola inventaris Anda</p>
         </div>
         
         <div className="p-8">
@@ -82,14 +83,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               disabled={loading}
               className="w-full bg-primary-600 text-white font-medium py-2.5 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Sedang Masuk...' : 'Masuk'}
             </button>
           </form>
 
           <div className="mt-8 text-center text-xs text-gray-400">
             <p>Demo Credentials:</p>
             <p className="mt-1">Admin: <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">admin</code> &bull; User: <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">user</code></p>
-            <p className="mt-1">(Any password works)</p>
+            <p className="mt-1">(Password bebas)</p>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Package, Settings, LogOut, LayoutDashboard, User as UserIcon } from 'lucide-react';
+import { Menu, X, Package, Settings, LogOut, LayoutDashboard, User as UserIcon, Users, FileText } from 'lucide-react';
 import { Role, User } from '../types';
 import { clsx } from 'clsx';
 
@@ -40,6 +41,16 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
         <span>{label}</span>
       </Link>
     );
+  };
+
+  const getPageTitle = () => {
+    if (location.pathname === '/') return 'Katalog Produk';
+    if (location.pathname.includes('users')) return 'Manajemen Pengguna';
+    if (location.pathname.includes('settings')) return 'Pengaturan Sistem';
+    if (location.pathname.includes('reports')) return 'Laporan Keuangan';
+    if (location.pathname.includes('new')) return 'Tambah Produk';
+    if (location.pathname.includes('edit')) return 'Edit Produk';
+    return 'Dashboard';
   };
 
   return (
@@ -86,12 +97,30 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
           </div>
 
           <nav>
-            <NavItem to="/" icon={LayoutDashboard} label="Products" />
+            {/* All roles can see Dashboard/Product List */}
+            <NavItem to="/" icon={LayoutDashboard} label="Produk" />
+            
+            {/* Admin Only */}
+            <NavItem 
+              to="/users" 
+              icon={Users} 
+              label="Manajemen User" 
+              restrictedTo={[Role.ADMIN]} 
+            />
+
             <NavItem 
               to="/settings" 
               icon={Settings} 
-              label="Settings & Master" 
+              label="Pengaturan & Master" 
               restrictedTo={[Role.ADMIN]} 
+            />
+
+            {/* Admin and Owner */}
+            <NavItem 
+              to="/reports" 
+              icon={FileText} 
+              label="Laporan Keuangan" 
+              restrictedTo={[Role.ADMIN, Role.OWNER]} 
             />
           </nav>
         </div>
@@ -102,7 +131,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             className="flex w-full items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           >
             <LogOut size={20} />
-            <span>Sign Out</span>
+            <span>Keluar</span>
           </button>
         </div>
       </aside>
@@ -117,10 +146,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
             <Menu size={24} />
           </button>
           <h1 className="text-lg font-semibold text-gray-800 ml-2 lg:ml-0">
-            {location.pathname === '/' ? 'Product Catalog' : 
-             location.pathname.includes('settings') ? 'System Settings' : 
-             location.pathname.includes('new') ? 'New Product' : 
-             location.pathname.includes('edit') ? 'Edit Product' : 'Dashboard'}
+            {getPageTitle()}
           </h1>
         </header>
 

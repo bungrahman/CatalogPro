@@ -1,6 +1,7 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowLeft, Wand2, Calculator } from 'lucide-react';
+import { Save, ArrowLeft, Wand2, Calculator, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { Brand, Category, GlobalSettings, Product } from '../types';
 import { dataService } from '../services/dataService';
 import { generateProductDescription } from '../services/geminiService';
@@ -12,7 +13,6 @@ const ProductForm: React.FC = () => {
   const isEdit = !!id;
 
   const [formData, setFormData] = useState<Partial<Product>>({
-    name: '',
     categoryId: '',
     brandId: '',
     type: '',
@@ -23,6 +23,8 @@ const ProductForm: React.FC = () => {
     installment_9: 0,
     installment_12: 0,
     description: '',
+    productImage: '',
+    externalLink: ''
   });
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -77,8 +79,8 @@ const ProductForm: React.FC = () => {
   };
 
   const handleGenerateDescription = async () => {
-    if (!formData.name || !formData.categoryId || !formData.brandId) {
-      alert("Please fill in Name, Category, and Brand first.");
+    if (!formData.categoryId || !formData.brandId || !formData.type) {
+      alert("Mohon isi Kategori, Merek, dan Tipe terlebih dahulu.");
       return;
     }
     setGeneratingAI(true);
@@ -86,10 +88,9 @@ const ProductForm: React.FC = () => {
     const brandName = brands.find(b => b.id === formData.brandId)?.name || '';
     
     const desc = await generateProductDescription(
-      formData.name || '',
-      formData.type || '',
       catName,
-      brandName
+      brandName,
+      formData.type || ''
     );
     
     setFormData(prev => ({ ...prev, description: desc }));
@@ -111,7 +112,7 @@ const ProductForm: React.FC = () => {
     navigate('/');
   };
 
-  const InputField = ({ label, name, value, type = 'text', onChange, readOnly = false, prefix }: any) => (
+  const InputField = ({ label, name, value, type = 'text', onChange, readOnly = false, prefix, placeholder }: any) => (
     <div className="space-y-1">
       <label className="text-sm font-medium text-gray-700">{label}</label>
       <div className="relative">
@@ -121,6 +122,7 @@ const ProductForm: React.FC = () => {
           value={value}
           onChange={onChange}
           readOnly={readOnly}
+          placeholder={placeholder}
           className={clsx(
             "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-shadow",
             prefix && "pl-10",
@@ -131,65 +133,82 @@ const ProductForm: React.FC = () => {
     </div>
   );
 
+  // Filter brands based on selected category
+  const filteredBrands = brands.filter(b => b.categoryId === formData.categoryId);
+
   return (
     <div className="max-w-3xl mx-auto">
       <button 
         onClick={() => navigate('/')}
         className="flex items-center text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
       >
-        <ArrowLeft size={16} className="mr-1" /> Back to List
+        <ArrowLeft size={16} className="mr-1" /> Kembali ke Daftar
       </button>
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-gray-900">{isEdit ? 'Edit Product' : 'New Product'}</h2>
+          <h2 className="text-lg font-bold text-gray-900">{isEdit ? 'Edit Produk' : 'Tambah Produk Baru'}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
           
           {/* Basic Info */}
           <section className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b pb-2 mb-4">Basic Information</h3>
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b pb-2 mb-4">Informasi Dasar</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputField 
-                label="Product Name" 
-                value={formData.name} 
-                onChange={(e: any) => setFormData({...formData, name: e.target.value})} 
-              />
-              <InputField 
-                label="Type/Model" 
-                value={formData.type} 
-                onChange={(e: any) => setFormData({...formData, type: e.target.value})} 
-              />
+              
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Category</label>
+                <label className="text-sm font-medium text-gray-700">Kategori</label>
                 <select 
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   value={formData.categoryId}
-                  onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
+                  onChange={(e) => setFormData({...formData, categoryId: e.target.value, brandId: ''})} // Reset brand on category change
                   required
                 >
-                  <option value="">Select Category</option>
+                  <option value="">Pilih Kategori</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
+
               <div className="space-y-1">
-                <label className="text-sm font-medium text-gray-700">Brand</label>
+                <label className="text-sm font-medium text-gray-700">Merek</label>
                 <select 
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
                   value={formData.brandId}
                   onChange={(e) => setFormData({...formData, brandId: e.target.value})}
                   required
+                  disabled={!formData.categoryId}
                 >
-                  <option value="">Select Brand</option>
-                  {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  <option value="">{formData.categoryId ? 'Pilih Merek' : 'Pilih Kategori Dulu'}</option>
+                  {filteredBrands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                 </select>
               </div>
+
+              <InputField 
+                label="Tipe/Model" 
+                value={formData.type} 
+                onChange={(e: any) => setFormData({...formData, type: e.target.value})} 
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InputField 
+                    label="URL Gambar Produk (Opsional)" 
+                    value={formData.productImage} 
+                    onChange={(e: any) => setFormData({...formData, productImage: e.target.value})}
+                    placeholder="https://..."
+                />
+                 <InputField 
+                    label="Link Eksternal (Opsional)" 
+                    value={formData.externalLink} 
+                    onChange={(e: any) => setFormData({...formData, externalLink: e.target.value})}
+                    placeholder="Link untuk tombol 'Lihat Produk'"
+                />
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium text-gray-700">Description</label>
+                <label className="text-sm font-medium text-gray-700">Deskripsi</label>
                 <button
                   type="button"
                   onClick={handleGenerateDescription}
@@ -197,7 +216,7 @@ const ProductForm: React.FC = () => {
                   className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700 font-medium disabled:opacity-50"
                 >
                   <Wand2 size={12} />
-                  {generatingAI ? 'Generating...' : 'Auto-Generate with AI'}
+                  {generatingAI ? 'Sedang membuat...' : 'Buat Otomatis dengan AI'}
                 </button>
               </div>
               <textarea
@@ -205,7 +224,7 @@ const ProductForm: React.FC = () => {
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
                 rows={3}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
-                placeholder="Product description..."
+                placeholder="Deskripsi produk..."
               />
             </div>
           </section>
@@ -213,25 +232,25 @@ const ProductForm: React.FC = () => {
           {/* Pricing */}
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider border-b pb-2 mb-4 flex items-center gap-2">
-              <Calculator size={16} /> Pricing & Installments
+              <Calculator size={16} /> Harga & Cicilan
             </h3>
             
             <div className="p-4 bg-primary-50 rounded-lg border border-primary-100 mb-4">
               <InputField 
-                label="HPP (Cost Price)" 
+                label="HPP (Harga Modal)" 
                 type="number" 
                 value={formData.hpp} 
                 onChange={handleHppChange}
                 prefix="Rp"
               />
               <p className="text-xs text-primary-600 mt-2">
-                * Entering HPP will automatically calculate the Selling Price and Installments based on current Global Settings.
+                * Memasukkan HPP akan otomatis menghitung Harga Jual (UP) dan Angsuran berdasarkan Pengaturan Global saat ini.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <InputField 
-                label="Selling Price (UP)" 
+                label="Harga Jual (UP)" 
                 value={formData.price_up_60} 
                 readOnly 
                 prefix="Rp"
@@ -239,25 +258,25 @@ const ProductForm: React.FC = () => {
               <div className="hidden md:block"></div> {/* Spacer */}
               
               <InputField 
-                label="3 Month Installment" 
+                label="Angsuran 3 Bulan" 
                 value={formData.installment_3} 
                 readOnly 
                 prefix="Rp"
               />
               <InputField 
-                label="6 Month Installment" 
+                label="Angsuran 6 Bulan" 
                 value={formData.installment_6} 
                 readOnly 
                 prefix="Rp"
               />
               <InputField 
-                label="9 Month Installment" 
+                label="Angsuran 9 Bulan" 
                 value={formData.installment_9} 
                 readOnly 
                 prefix="Rp"
               />
               <InputField 
-                label="12 Month Installment" 
+                label="Angsuran 12 Bulan" 
                 value={formData.installment_12} 
                 readOnly 
                 prefix="Rp"
@@ -271,7 +290,7 @@ const ProductForm: React.FC = () => {
               onClick={() => navigate('/')}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              Batal
             </button>
             <button
               type="submit"
@@ -279,7 +298,7 @@ const ProductForm: React.FC = () => {
               className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 shadow-sm shadow-primary-600/20"
             >
               <Save size={16} />
-              {loading ? 'Saving...' : 'Save Product'}
+              {loading ? 'Menyimpan...' : 'Simpan Produk'}
             </button>
           </div>
 

@@ -1,4 +1,5 @@
-import { Brand, Category, GlobalSettings, Product, Role, User } from '../types';
+
+import { Brand, Category, GlobalSettings, Product, Role, User, Transaction } from '../types';
 
 // Initial Data
 const INITIAL_SETTINGS: GlobalSettings = {
@@ -10,25 +11,26 @@ const INITIAL_SETTINGS: GlobalSettings = {
 };
 
 const INITIAL_CATEGORIES: Category[] = [
-  { id: '1', name: 'Electronics' },
-  { id: '2', name: 'Furniture' },
-  { id: '3', name: 'Appliances' }
+  { id: '1', name: 'LED' },
+  { id: '2', name: 'KULKAS' },
+  { id: '3', name: 'MESIN CUCI' }
 ];
 
 const INITIAL_BRANDS: Brand[] = [
-  { id: '1', name: 'Samsung' },
-  { id: '2', name: 'LG' },
-  { id: '3', name: 'Sharp' },
-  { id: '4', name: 'IKEA' }
+  { id: '1', name: 'Samsung', categoryId: '1' },
+  { id: '2', name: 'LG', categoryId: '1' },
+  { id: '3', name: 'Sharp', categoryId: '1' },
+  { id: '4', name: 'Polytron', categoryId: '2' },
+  { id: '5', name: 'Samsung', categoryId: '2' }, // Samsung also makes Fridges
+  { id: '6', name: 'LG', categoryId: '3' }       // LG also makes Washing Machines
 ];
 
 const INITIAL_PRODUCTS: Product[] = [
   {
     id: '1',
-    name: 'LED SHARP 32BG1',
-    categoryId: '1',
-    brandId: '3',
-    type: 'TV',
+    categoryId: '1', // LED
+    brandId: '3', // Sharp (LED)
+    type: '32BG1',
     hpp: 2220000,
     price_up_60: 3552000,
     installment_3: 1302000,
@@ -36,13 +38,34 @@ const INITIAL_PRODUCTS: Product[] = [
     installment_9: 533000,
     installment_12: 420000,
     updatedAt: new Date().toISOString(),
-    description: "A high-quality 32-inch LED TV from Sharp, featuring vivid colors and energy-saving technology."
+    description: "TV LED 32 inci berkualitas tinggi dari Sharp, menampilkan warna-warna cerah dan teknologi hemat energi.",
+    externalLink: "https://www.google.com"
   }
 ];
 
-const USERS: User[] = [
+const INITIAL_USERS: User[] = [
   { id: '1', username: 'admin', role: Role.ADMIN, name: 'Administrator' },
-  { id: '2', username: 'user', role: Role.USER, name: 'Sales Staff' }
+  { id: '2', username: 'user', role: Role.USER, name: 'Sales Staff' },
+  { id: '3', username: 'owner', role: Role.OWNER, name: 'Business Owner' }
+];
+
+// Mock Transactions for Reports
+const MOCK_TRANSACTIONS: Transaction[] = [
+  { 
+    id: 't1', date: '2023-10-15', type: 'INCOME', description: 'Penjualan LED TV Sharp 32BG1', amount: 3552000, pic: 'Sales Staff'
+  },
+  { 
+    id: 't2', date: '2023-10-18', type: 'EXPENSE', description: 'Biaya Listrik & Air', amount: 450000, pic: 'Administrator'
+  },
+  { 
+    id: 't3', date: '2023-11-05', type: 'INCOME', description: 'Penjualan Kulkas Samsung', amount: 4800000, pic: 'Sales Staff'
+  },
+  { 
+    id: 't4', date: new Date().toISOString().split('T')[0], type: 'EXPENSE', description: 'Biaya Operasional Toko', amount: 200000, pic: 'Administrator'
+  },
+  { 
+    id: 't5', date: new Date().toISOString().split('T')[0], type: 'INCOME', description: 'Penjualan Mesin Cuci LG', amount: 7200000, pic: 'Administrator'
+  }
 ];
 
 // Helper to simulate delay
@@ -67,13 +90,40 @@ class DataService {
     if (!localStorage.getItem('catalog_products')) {
       localStorage.setItem('catalog_products', JSON.stringify(INITIAL_PRODUCTS));
     }
+    if (!localStorage.getItem('catalog_users')) {
+      localStorage.setItem('catalog_users', JSON.stringify(INITIAL_USERS));
+    }
+    if (!localStorage.getItem('catalog_transactions')) {
+      localStorage.setItem('catalog_transactions', JSON.stringify(MOCK_TRANSACTIONS));
+    }
   }
 
-  // --- Auth ---
+  // --- Auth & Users ---
   async login(username: string): Promise<User | null> {
     await delay(500);
-    const user = USERS.find(u => u.username === username);
+    const users = this.getUsers();
+    const user = users.find(u => u.username === username);
     return user || null;
+  }
+
+  getUsers(): User[] {
+    return JSON.parse(localStorage.getItem('catalog_users') || '[]');
+  }
+
+  saveUser(user: User): void {
+    const users = this.getUsers();
+    const existing = users.findIndex(u => u.id === user.id);
+    if (existing >= 0) {
+      users[existing] = user;
+    } else {
+      users.push(user);
+    }
+    localStorage.setItem('catalog_users', JSON.stringify(users));
+  }
+
+  deleteUser(id: string): void {
+    const users = this.getUsers().filter(u => u.id !== id);
+    localStorage.setItem('catalog_users', JSON.stringify(users));
   }
 
   // --- Settings ---
@@ -156,6 +206,29 @@ class DataService {
     const products = await this.getProducts();
     const filtered = products.filter(p => p.id !== id);
     localStorage.setItem('catalog_products', JSON.stringify(filtered));
+  }
+
+  // --- Reports ---
+  getTransactions(): Transaction[] {
+    return JSON.parse(localStorage.getItem('catalog_transactions') || '[]');
+  }
+
+  saveTransaction(transaction: Transaction): void {
+    const transactions = this.getTransactions();
+    const existingIndex = transactions.findIndex(t => t.id === transaction.id);
+    
+    if (existingIndex >= 0) {
+      transactions[existingIndex] = transaction;
+    } else {
+      transactions.push(transaction);
+    }
+    
+    localStorage.setItem('catalog_transactions', JSON.stringify(transactions));
+  }
+
+  deleteTransaction(id: string): void {
+    const transactions = this.getTransactions().filter(t => t.id !== id);
+    localStorage.setItem('catalog_transactions', JSON.stringify(transactions));
   }
 }
 

@@ -1,6 +1,8 @@
+
 export enum Role {
   ADMIN = 'ADMIN',
-  USER = 'USER'
+  USER = 'USER',
+  OWNER = 'OWNER'
 }
 
 export interface User {
@@ -8,6 +10,7 @@ export interface User {
   username: string;
   role: Role;
   name: string;
+  password?: string; // Simple mock password
 }
 
 export interface Category {
@@ -19,6 +22,7 @@ export interface Category {
 export interface Brand {
   id: string;
   name: string;
+  categoryId: string; // Linked to Category
 }
 
 export interface GlobalSettings {
@@ -31,9 +35,11 @@ export interface GlobalSettings {
 
 export interface Product {
   id: string;
-  name: string;
+  // name field removed
   categoryId: string;
   brandId: string;
+  productImage?: string; // URL Image
+  externalLink?: string; // URL for "Lihat Produk"
   description?: string; // AI Generated
   type: string;
   hpp: number; // Base Cost
@@ -43,6 +49,15 @@ export interface Product {
   installment_9: number;
   installment_12: number;
   updatedAt: string;
+}
+
+export interface Transaction {
+  id: string;
+  date: string; // ISO Date
+  type: 'INCOME' | 'EXPENSE';
+  description: string;
+  amount: number;
+  pic: string; // Person In Charge
 }
 
 export interface AuthState {
