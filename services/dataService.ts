@@ -2,11 +2,11 @@ import { Brand, Category, GlobalSettings, Product, Role, User } from '../types';
 
 // Initial Data
 const INITIAL_SETTINGS: GlobalSettings = {
-  margin_up_percent: 30,
-  interest_3_month: 2.5,
-  interest_6_month: 5,
-  interest_9_month: 7.5,
-  interest_12_month: 10
+  margin_up_percent: 60,
+  interest_3_month: 10,
+  interest_6_month: 28,
+  interest_9_month: 35,
+  interest_12_month: 42
 };
 
 const INITIAL_CATEGORIES: Category[] = [
@@ -29,12 +29,12 @@ const INITIAL_PRODUCTS: Product[] = [
     categoryId: '1',
     brandId: '3',
     type: 'TV',
-    hpp: 2000000,
-    price_up_60: 2600000,
-    installment_3: 888333,
-    installment_6: 455000,
-    installment_9: 310555,
-    installment_12: 238333,
+    hpp: 2220000,
+    price_up_60: 3552000,
+    installment_3: 1302000,
+    installment_6: 758000,
+    installment_9: 533000,
+    installment_12: 420000,
     updatedAt: new Date().toISOString(),
     description: "A high-quality 32-inch LED TV from Sharp, featuring vivid colors and energy-saving technology."
   }

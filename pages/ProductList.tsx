@@ -147,14 +147,18 @@ const ProductList: React.FC<ProductListProps> = ({ user }) => {
                     <span className="text-lg font-bold text-gray-900">{formatCurrency(product.price_up_60)}</span>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="bg-gray-50 p-2 rounded">
-                      <div className="text-xs text-gray-500">12 Months</div>
-                      <div className="font-semibold text-gray-900">{formatCurrency(product.installment_12)}</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-gray-50 p-2 rounded text-center">
+                      <div className="text-[10px] text-gray-500 font-medium uppercase">3 Months</div>
+                      <div className="font-bold text-gray-900 text-sm">{formatCurrency(product.installment_3)}</div>
                     </div>
-                    <div className="bg-gray-50 p-2 rounded">
-                      <div className="text-xs text-gray-500">6 Months</div>
-                      <div className="font-semibold text-gray-900">{formatCurrency(product.installment_6)}</div>
+                    <div className="bg-gray-50 p-2 rounded text-center">
+                      <div className="text-[10px] text-gray-500 font-medium uppercase">6 Months</div>
+                      <div className="font-bold text-gray-900 text-sm">{formatCurrency(product.installment_6)}</div>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded text-center">
+                      <div className="text-[10px] text-gray-500 font-medium uppercase">12 Months</div>
+                      <div className="font-bold text-gray-900 text-sm">{formatCurrency(product.installment_12)}</div>
                     </div>
                   </div>
                 </div>

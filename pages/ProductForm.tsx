@@ -51,9 +51,13 @@ const ProductForm: React.FC = () => {
     const margin = settings.margin_up_percent / 100;
     const priceUp60 = hpp * (1 + margin);
     
-    // Installment Formula: (Price * (1 + InterestRate)) / Months
+    // Excel Formula: ROUND(((1 + Rate) * UP) / Months; -3)
+    // This effectively rounds to the nearest 1000
     const calcInstallment = (price: number, interest: number, months: number) => {
-       return Math.ceil((price * (1 + (interest / 100))) / months);
+       const totalWithInterest = price * (1 + (interest / 100));
+       const monthlyRaw = totalWithInterest / months;
+       // Javascript Round to nearest 1000 logic: Math.round(x / 1000) * 1000
+       return Math.round(monthlyRaw / 1000) * 1000;
     };
 
     setFormData(prev => ({
