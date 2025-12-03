@@ -114,9 +114,14 @@ const ProductList: React.FC<ProductListProps> = ({ user }) => {
             <div key={product.id} className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden">
               <div className="p-5 flex-1">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-semibold tracking-wider text-primary-600 uppercase bg-primary-50 px-2 py-1 rounded">
-                    {category?.name || 'Uncategorized'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {category?.image && (
+                      <img src={category.image} alt={category.name} className="w-6 h-6 rounded-md object-cover border border-primary-100" />
+                    )}
+                    <span className="text-xs font-semibold tracking-wider text-primary-600 uppercase bg-primary-50 px-2 py-1 rounded">
+                      {category?.name || 'Uncategorized'}
+                    </span>
+                  </div>
                   {isAdmin && (
                     <div className="flex gap-1">
                       <Link to={`/products/edit/${product.id}`} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-gray-50 rounded">

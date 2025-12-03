@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trash2, Plus, Save } from 'lucide-react';
+import { Trash2, Plus, Save, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { Brand, Category, GlobalSettings } from '../types';
 import { dataService } from '../services/dataService';
 
@@ -17,6 +17,8 @@ const SettingsPage: React.FC = () => {
 
   // Temp inputs for adding new
   const [newCat, setNewCat] = useState('');
+  const [newCatImage, setNewCatImage] = useState<string>('');
+  
   const [newBrand, setNewBrand] = useState('');
 
   useEffect(() => {
@@ -30,12 +32,32 @@ const SettingsPage: React.FC = () => {
     alert('Settings saved successfully!');
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 1024 * 1024) { // 1MB Limit
+        alert("Image is too large. Please use an image under 1MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewCatImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddCategory = () => {
     if (!newCat) return;
-    const cat: Category = { id: Date.now().toString(), name: newCat };
+    const cat: Category = { 
+      id: Date.now().toString(), 
+      name: newCat,
+      image: newCatImage
+    };
     dataService.saveCategory(cat);
     setCategories(dataService.getCategories());
     setNewCat('');
+    setNewCatImage('');
   };
 
   const handleDeleteCategory = (id: string) => {
@@ -152,17 +174,41 @@ const SettingsPage: React.FC = () => {
           <div className="max-w-xl space-y-6">
             <h3 className="text-lg font-semibold text-gray-900">Manage Categories</h3>
             
-            <div className="flex gap-2">
+            <div className="flex gap-3 items-start p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <div className="relative group shrink-0">
+                <div className={`w-10 h-10 rounded-lg border-2 border-dashed flex items-center justify-center overflow-hidden bg-white ${newCatImage ? 'border-primary-500' : 'border-gray-300'}`}>
+                  {newCatImage ? (
+                    <img src={newCatImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="text-gray-400" size={18} />
+                  )}
+                </div>
+                <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                  <Upload size={14} />
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </label>
+                {newCatImage && (
+                  <button 
+                    onClick={() => setNewCatImage('')} 
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-sm hover:bg-red-600"
+                    title="Remove image"
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+
               <input 
                 type="text" 
                 value={newCat}
                 onChange={(e) => setNewCat(e.target.value)}
                 placeholder="New Category Name"
-                className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500 text-sm h-10"
               />
               <button 
                 onClick={handleAddCategory}
-                className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700"
+                disabled={!newCat}
+                className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed h-10 w-10 flex items-center justify-center shrink-0"
               >
                 <Plus size={20} />
               </button>
@@ -170,16 +216,28 @@ const SettingsPage: React.FC = () => {
 
             <ul className="space-y-2 max-h-96 overflow-y-auto">
               {categories.map(c => (
-                <li key={c.id} className="flex justify-between items-center bg-gray-50 px-4 py-3 rounded-lg">
-                  <span className="font-medium text-gray-800">{c.name}</span>
+                <li key={c.id} className="flex justify-between items-center bg-white border border-gray-100 px-4 py-3 rounded-lg hover:shadow-sm transition-shadow">
+                  <div className="flex items-center gap-3">
+                    {c.image ? (
+                      <img src={c.image} alt={c.name} className="w-8 h-8 rounded object-cover border border-gray-200" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-400">
+                        <ImageIcon size={14} />
+                      </div>
+                    )}
+                    <span className="font-medium text-gray-800">{c.name}</span>
+                  </div>
                   <button 
                     onClick={() => handleDeleteCategory(c.id)}
-                    className="text-gray-400 hover:text-red-600"
+                    className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
                 </li>
               ))}
+              {categories.length === 0 && (
+                <p className="text-center text-gray-500 text-sm py-4">No categories found.</p>
+              )}
             </ul>
           </div>
         )}
@@ -188,17 +246,18 @@ const SettingsPage: React.FC = () => {
           <div className="max-w-xl space-y-6">
             <h3 className="text-lg font-semibold text-gray-900">Manage Brands</h3>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 p-4 bg-gray-50 rounded-lg border border-gray-100">
               <input 
                 type="text" 
                 value={newBrand}
                 onChange={(e) => setNewBrand(e.target.value)}
                 placeholder="New Brand Name"
-                className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary-500 text-sm"
               />
               <button 
                 onClick={handleAddBrand}
-                className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700"
+                disabled={!newBrand}
+                className="bg-primary-600 text-white p-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus size={20} />
               </button>
@@ -206,16 +265,19 @@ const SettingsPage: React.FC = () => {
 
             <ul className="space-y-2 max-h-96 overflow-y-auto">
               {brands.map(b => (
-                <li key={b.id} className="flex justify-between items-center bg-gray-50 px-4 py-3 rounded-lg">
+                <li key={b.id} className="flex justify-between items-center bg-white border border-gray-100 px-4 py-3 rounded-lg hover:shadow-sm transition-shadow">
                   <span className="font-medium text-gray-800">{b.name}</span>
                   <button 
                     onClick={() => handleDeleteBrand(b.id)}
-                    className="text-gray-400 hover:text-red-600"
+                    className="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors"
                   >
                     <Trash2 size={16} />
                   </button>
                 </li>
               ))}
+              {brands.length === 0 && (
+                <p className="text-center text-gray-500 text-sm py-4">No brands found.</p>
+              )}
             </ul>
           </div>
         )}

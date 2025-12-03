@@ -13,6 +13,7 @@ export interface User {
 export interface Category {
   id: string;
   name: string;
+  image?: string; // Base64 or URL
 }
 
 export interface Brand {
